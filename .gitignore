@@ -1,0 +1,23 @@
+.vs
+.vscode
+.idea
+.cache
+cmake-build-debug
+build
+/CMakeSettings.json
+# test
+test_data
+test_order
+*.log
+*.pyc
+log
+logs
+log_deploy.ini
+op
+deploy.sh
+__pycache__
+deploy/output
+deploy/input
+/cmake-build-*/
+*.a
+*.dll
