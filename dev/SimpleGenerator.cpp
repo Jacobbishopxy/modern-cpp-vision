@@ -19,13 +19,18 @@ struct Generator {
 
     // Required functions for the promise type
     auto get_return_object() { return Generator{this}; }
+
     auto initial_suspend() { return std::suspend_always{}; }
+
     auto final_suspend() noexcept { return std::suspend_always{}; }
+
     void unhandled_exception() { std::terminate(); }
+
     auto yield_value(T value) {
       current_value = value;
       return std::suspend_always{};
     }
+
     void return_void() {}
   };
 
@@ -40,9 +45,11 @@ struct Generator {
 
   Generator(const Generator&) = delete;
   Generator& operator=(const Generator&) = delete;
+
   Generator(Generator&& other) noexcept : handle(other.handle) {
     other.handle = nullptr;
   }
+
   Generator& operator=(Generator&& other) noexcept {
     if (this != &other) {
       if (handle) handle.destroy();

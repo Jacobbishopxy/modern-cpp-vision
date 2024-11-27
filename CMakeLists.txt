@@ -24,3 +24,5 @@ add_executable(async_io dev/AsyncIO.cpp)
 
 add_executable(co_vec_fut dev/CoVecFut.cpp)
 
+add_executable(co_generator dev/CoGenerator.cpp)
+

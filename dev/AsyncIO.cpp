@@ -23,9 +23,13 @@ struct AsyncIO {
     AsyncIO get_return_object() {
       return AsyncIO{std::coroutine_handle<promise_type>::from_promise(*this)};
     }
+
     auto initial_suspend() { return std::suspend_never{}; }
+
     auto final_suspend() noexcept { return std::suspend_always{}; }
+
     void return_void() {}
+
     void unhandled_exception() { std::terminate(); }
 
     struct Awaitable {
@@ -62,15 +66,18 @@ struct AsyncIO {
   std::coroutine_handle<promise_type> handle;
 
   AsyncIO(std::coroutine_handle<promise_type> h) : handle(h) {}
+
   ~AsyncIO() {
     if (handle) handle.destroy();
   }
 
   AsyncIO(const AsyncIO&) = delete;
   AsyncIO& operator=(const AsyncIO&) = delete;
+
   AsyncIO(AsyncIO&& other) noexcept : handle(other.handle) {
     other.handle = nullptr;
   }
+
   AsyncIO& operator=(AsyncIO&& other) noexcept {
     if (this != &other) {
       if (handle) handle.destroy();
