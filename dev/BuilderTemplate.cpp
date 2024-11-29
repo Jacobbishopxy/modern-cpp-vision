@@ -5,7 +5,7 @@
  * @brief:
  **/
 
-#include <algorithm>
+#include <format>
 #include <iostream>
 
 // ================================================================================================
@@ -16,20 +16,31 @@ struct TemplatedApp
 {
 public:
     // Default constructor
-    TemplatedApp()
-        : m_spi_ptr(nullptr) {}
+    TemplatedApp() = default;
 
-    // disallow copying, only move
-    // TemplatedApp(const TemplatedApp& other) = delete;
+    // Move constructor and assignment operator
+    TemplatedApp(TemplatedApp&&) noexcept = default;
+    TemplatedApp& operator=(TemplatedApp&&) noexcept = default;
 
-    template <typename SPI>
-    BuilderPatternReturnType registerApp(SPI& spi)
+    // Disallow copying
+    TemplatedApp(const TemplatedApp&) = delete;
+    TemplatedApp& operator=(const TemplatedApp&) = delete;
+
+    // Register App with a SpiBaseType instance
+    BuilderPatternReturnType registerApp(SpiBaseType& spi)
     {
-        this->m_spi_ptr = &spi;
-        return std::move(static_cast<BuilderPatternReturnType&&>(*this));
+        m_spi_ptr = &spi;
+        return static_cast<BuilderPatternReturnType&&>(*this);  // Use static_cast for clarity
     }
 
-    SpiBaseType* m_spi_ptr = nullptr;
+    // Provide a getter for the SPI pointer
+    [[nodiscard]] SpiBaseType* getSpiPtr() const noexcept
+    {
+        return m_spi_ptr;
+    }
+
+private:
+    SpiBaseType* m_spi_ptr = nullptr;  // Pointer to SPI interface
 };
 
 // Define the App class as a template
@@ -43,7 +54,10 @@ public:
         // Additional logic for running the app can be added here
     }
 
-    void send(std::string msg) {}
+    void send(std::string msg)
+    {
+        std::cout << "Sending message: " << msg << std::endl;
+    }
 };
 
 // ================================================================================================
@@ -51,9 +65,14 @@ public:
 
 struct NewOrderSingle
 {
+    std::string Symbol;
+    uint Side;
+    float Price;
+    uint Volume;
+
     const std::string toStr() const
     {
-        return "";
+        return std::format("{}_{}_{}_{}", this->Symbol, this->Side, this->Price, this->Volume);
     }
 };
 
@@ -94,7 +113,7 @@ int main(int argc, char** argv)
     app.run();
 
     // biz
-    auto msg = NewOrderSingle();
+    auto msg = NewOrderSingle{.Symbol = "000001", .Side = 2, .Price = 11.1, .Volume = 2000};
     spiServer.onMessage(msg);
 
     return 0;
