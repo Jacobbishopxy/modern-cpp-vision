@@ -26,3 +26,4 @@ add_executable(co_vec_fut dev/CoVecFut.cpp)
 
 add_executable(co_generator dev/CoGenerator.cpp)
 
+add_executable(builder_tmp dev/BuilderTemplate.cpp)
