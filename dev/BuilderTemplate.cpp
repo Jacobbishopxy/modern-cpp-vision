@@ -54,10 +54,10 @@ public:
     TemplatedApp& operator=(const TemplatedApp&) = delete;
 
     // Register App with a SpiBaseType instance
-    BuilderPatternReturnType registerApp(SpiBaseType& spi)
+    BuilderPatternReturnType&& registerApp(SpiBaseType& spi)
     {
         m_spi_ptr = &spi;
-        return static_cast<BuilderPatternReturnType&&>(*this);  // Use static_cast for clarity
+        return std::move(static_cast<BuilderPatternReturnType&&>(*this));  // Use static_cast for clarity
     }
 
     // Provide a getter for the SPI pointer
