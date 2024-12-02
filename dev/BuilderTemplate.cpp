@@ -5,12 +5,39 @@
  * @brief:
  **/
 
-#include <format>
+#include <fmt/format.h>
+
 #include <iostream>
 
 // ================================================================================================
 // Lib
 
+// Adt
+struct NewOrderSingle
+{
+    std::string Symbol;
+    uint Side;
+    float Price;
+    uint Volume;
+
+    const std::string toStr() const
+    {
+        return fmt::format("{}_{}_{}_{}", this->Symbol, this->Side, this->Price, this->Volume);
+    }
+};
+
+// ISpi interface
+struct ISpi
+{
+    virtual void procNewOrder(const NewOrderSingle& order) = 0;
+    virtual ~ISpi() = default;
+};
+
+// Template Constraint
+template <typename T>
+concept IsSpi = std::is_base_of_v<ISpi, T>;
+
+// TemplatedApp, builder
 template <typename SpiBaseType, typename BuilderPatternReturnType>
 struct TemplatedApp
 {
@@ -44,7 +71,7 @@ private:
 };
 
 // Define the App class as a template
-template <typename T>
+template <IsSpi T>
 class App : public TemplatedApp<T, App<T>>
 {
 public:
@@ -54,43 +81,31 @@ public:
         // Additional logic for running the app can be added here
     }
 
-    void send(std::string msg)
+    void receiveNewOrder(const NewOrderSingle& order)
     {
-        std::cout << "Sending message: " << msg << std::endl;
+        if (auto* spi = this->getSpiPtr())
+        {
+            spi->procNewOrder(order);  // Ensure T's sendMessage is called
+        }
+        else
+        {
+            std::cerr << "SPI pointer is not set!" << std::endl;
+        }
     }
 };
 
 // ================================================================================================
 // Biz
 
-struct NewOrderSingle
-{
-    std::string Symbol;
-    uint Side;
-    float Price;
-    uint Volume;
-
-    const std::string toStr() const
-    {
-        return std::format("{}_{}_{}_{}", this->Symbol, this->Side, this->Price, this->Volume);
-    }
-};
-
-class SpiServer
+// Example implementation of ISpi
+class SpiMock : public ISpi
 {
 public:
-    void init(App<SpiServer>* api)
+    void procNewOrder(const NewOrderSingle& order) override
     {
-        this->m_api = api;
+        auto s = order.toStr();
+        std::cout << "SpiMock.procNewOrder > " << s << std::endl;
     }
-
-    void onMessage(const NewOrderSingle& order)
-    {
-        this->m_api->send(order.toStr());
-    }
-
-protected:
-    App<SpiServer>* m_api;
 };
 
 // ================================================================================================
@@ -100,21 +115,16 @@ protected:
 int main(int argc, char** argv)
 {
     // biz
-    auto spiServer = SpiServer();
-
+    SpiMock spi;
     // lib
-    auto app = App<SpiServer>();
-    app.registerApp(spiServer);
+    App<SpiMock> app;
 
-    // biz
-    spiServer.init(&app);
-
-    // lib run
-    app.run();
-
-    // biz
     auto msg = NewOrderSingle{.Symbol = "000001", .Side = 2, .Price = 11.1, .Volume = 2000};
-    spiServer.onMessage(msg);
+
+    // app run
+    app.registerApp(spi).run();
+
+    app.receiveNewOrder(msg);
 
     return 0;
 }

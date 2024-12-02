@@ -12,7 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # deps
 # ================================================================================================
 
-#
+# fmt
+find_package(fmt REQUIRED)
 
 # ================================================================================================
 # exec
@@ -27,3 +28,4 @@ add_executable(co_vec_fut dev/CoVecFut.cpp)
 add_executable(co_generator dev/CoGenerator.cpp)
 
 add_executable(builder_tmp dev/BuilderTemplate.cpp)
+target_link_libraries(builder_tmp fmt::fmt)
